@@ -116,6 +116,7 @@ public class Connection {
 	    else {
 	    	sslServerSocket.setEnabledProtocols(new String[] {"TLSv1"});
 	    }
+		sslServerSocket.setNeedClientAuth(true);
 	    sslServerSocket.setReuseAddress(true);
 	    
 	    return sslServerSocket;
