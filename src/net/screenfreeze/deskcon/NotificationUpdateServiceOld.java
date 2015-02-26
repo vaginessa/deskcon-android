@@ -52,7 +52,7 @@ public class NotificationUpdateServiceOld extends AccessibilityService {
 					Bundle extras = not.extras;
 					if (extras.containsKey(Notification.EXTRA_TEMPLATE)) {
 						String template = extras.getString(Notification.EXTRA_TEMPLATE);
-						if (template.equals("android.app.Notification$BigTextStyle")) {
+						if (template.equals(Notification.BigTextStyle.class)) {
 							String title = extras.getString(Notification.EXTRA_TITLE_BIG);
 							if (title == null || title.isEmpty()) title = extras.getString(Notification.EXTRA_TITLE);
 							String text = extras.getString(Notification.EXTRA_BIG_TEXT);
