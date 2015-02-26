@@ -66,13 +66,14 @@ public class NotificationUpdateServiceOld extends AccessibilityService {
 							ByteArrayOutputStream stream = new ByteArrayOutputStream();
 							icon.compress(Bitmap.CompressFormat.PNG, 100, stream);
 							startUpdateServiceCommand(packageName, title, text, stream);
+							return;
 						}
 					}
-				} else {
-					if (not.tickerText != null) {
-						String text = not.tickerText.toString();
-						startUpdateServiceCommand(text);
-					}
+				}
+				if (not.tickerText != null) {
+					String text = not.tickerText.toString();
+					startUpdateServiceCommand(text);
+					return;
 				}
 			}
 		}
