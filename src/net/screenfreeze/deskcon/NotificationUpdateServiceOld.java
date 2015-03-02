@@ -18,7 +18,6 @@ import android.preference.PreferenceManager;
 import android.util.Base64;
 import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -52,7 +51,7 @@ public class NotificationUpdateServiceOld extends AccessibilityService {
 					Bundle extras = not.extras;
 					if (extras.containsKey(Notification.EXTRA_TEMPLATE)) {
 						String template = extras.getString(Notification.EXTRA_TEMPLATE);
-						if (template.equals(Notification.BigTextStyle.class)) {
+						if (template.equals(Notification.BigTextStyle.class.getName())) {
 							String title = extras.getString(Notification.EXTRA_TITLE_BIG);
 							if (title == null || title.isEmpty()) title = extras.getString(Notification.EXTRA_TITLE);
 							String text = extras.getString(Notification.EXTRA_BIG_TEXT);
@@ -68,6 +67,13 @@ public class NotificationUpdateServiceOld extends AccessibilityService {
 							startUpdateServiceCommand(packageName, title, text, stream);
 							return;
 						}
+					} else if (extras.containsKey(Notification.EXTRA_TITLE)){
+						String title = extras.getString(Notification.EXTRA_TITLE);
+						String text = "";
+						if (extras.containsKey(Notification.EXTRA_TEXT)){
+							text = extras.getString(Notification.EXTRA_TEXT);
+						}
+						startUpdateServiceCommand(packageName, title, text, null);
 					}
 				}
 				if (not.tickerText != null) {
@@ -105,7 +111,9 @@ public class NotificationUpdateServiceOld extends AccessibilityService {
 			data.put("appName", appName);
 			data.put("title", title);
 			data.put("text", text);
-			data.put("icon", Base64.encodeToString(icon.toByteArray(), Base64.DEFAULT));
+			if (icon != null) {
+				data.put("icon", Base64.encodeToString(icon.toByteArray(), Base64.DEFAULT));
+			}
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
