@@ -90,7 +90,10 @@ public class StatusUpdateService extends Service {
 			return super.onStartCommand(intent, flags, startId);
 		}
 		
-		Bundle extras = intent.getExtras();
+		Bundle extras = null;
+		if (intent != null) {
+			extras = intent.getExtras();
+		}
 
 		if (extras == null || !extras.containsKey("commandtype")) {
 			sendStatusUpdate();
