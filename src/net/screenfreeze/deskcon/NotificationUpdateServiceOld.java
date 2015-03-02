@@ -74,6 +74,7 @@ public class NotificationUpdateServiceOld extends AccessibilityService {
 							text = extras.getString(Notification.EXTRA_TEXT);
 						}
 						startUpdateServiceCommand(packageName, title, text, null);
+						return;
 					}
 				}
 				if (not.tickerText != null) {
