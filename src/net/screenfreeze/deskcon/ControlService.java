@@ -11,6 +11,8 @@ import java.io.InputStreamReader;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLSocket;
 
+import android.support.v4.app.TaskStackBuilder;
+import android.webkit.MimeTypeMap;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -37,7 +39,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 public class ControlService extends Service {
-	
+
 	private static SharedPreferences sharedPrefs;
 	private static int PORT;
 	private static ControlServer controlserver;
@@ -46,8 +48,8 @@ public class ControlService extends Service {
 	@Override
 	public IBinder onBind(Intent intent) {
 		return null;
-	}	
-	
+	}
+
 	@SuppressLint("ShowToast")
 	@Override
 	public void onCreate() {
@@ -59,12 +61,12 @@ public class ControlService extends Service {
 
 	@Override
 	public void onDestroy() {
-		Log.d("Control: ", "stop Server");	
+		Log.d("Control: ", "stop Server");
 		//controlserver.cancel(true);
 		controlserver.stopServer();
 		super.onDestroy();
 	}
-	
+
 	// workaround: sys stops task when UI closes
 	@SuppressLint("NewApi")
 	@Override
@@ -84,15 +86,15 @@ public class ControlService extends Service {
 
 	@SuppressLint("NewApi")
 	@Override
-	public int onStartCommand(Intent intent, int flags, int startId) {       
+	public int onStartCommand(Intent intent, int flags, int startId) {
 		controlserver = new ControlServer();
-		
+
 	    Thread cs = new Thread(controlserver);
 	    cs.start();
 
 		return START_STICKY;
-	}	
-	
+	}
+
 	private class ControlServer implements Runnable {
 		private SSLServerSocket sslServerSocket;
 		private SSLSocket socket;
@@ -100,16 +102,16 @@ public class ControlService extends Service {
 
 		@Override
 		public void run() {
-			Log.d("Control: ", "start Server");	
-			try {		
+			Log.d("Control: ", "start Server");
+			try {
 				// create SSLServerSocket
 				sslServerSocket = Connection.createSSLServerSocket(getApplicationContext(), PORT);
 			} catch (Exception e) {
 				e.printStackTrace();
-				Log.d("Control: ", "could not start");	
+				Log.d("Control: ", "could not start");
 				return;
-			} 
-			
+			}
+
 			//begin serving
 			while (!isStopped) {
 				try {
@@ -117,35 +119,35 @@ public class ControlService extends Service {
 					socket.startHandshake();
 				} catch (IOException e) {
 					e.printStackTrace();
-				}	
-				if (socket != null && socket.isConnected()) {					
+				}
+				if (socket != null && socket.isConnected()) {
 					try {
 						handleClientSocket(socket);
 						socket.close();
 					} catch (Exception e) {
 						e.printStackTrace();
-					}					
+					}
 				}
-			}			
+			}
 		}
-		
-		private void handleClientSocket(SSLSocket socket) throws Exception {		
-			BufferedReader inFromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));	        
-			DataOutputStream outToClient = new DataOutputStream(socket.getOutputStream()); 
+
+		private void handleClientSocket(SSLSocket socket) throws Exception {
+			BufferedReader inFromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			DataOutputStream outToClient = new DataOutputStream(socket.getOutputStream());
 			// receive Data
 	        byte[] data = readWithMaxBuffer(inFromClient);
 	        String datastring = new String(data);
-			outToClient.write("OK".getBytes());			
-			
+			outToClient.write("OK".getBytes());
+
 			Log.d("Control: ", "received CMD");
-			
+
 			// parse CMD Data
 			JSONObject jobject = new JSONObject(datastring);
 			//Long uuid = jobject.getLong("uuid");
 			String name = jobject.getString("name");
 			String cmdtype = jobject.getString("type");
 			String cmddata = jobject.getString("data");
-			
+
 			// SMS
 			if (cmdtype.equals("sms")) {
 				sendSMS(cmddata);
@@ -163,19 +165,20 @@ public class ControlService extends Service {
 					filenames[i] = jarray.getString(i);
 				}
 				receiveFiles(filenames, socket);
-				publishProgress(1);				
+				publishProgress(1);
 			}
 		}
 
 		private void publishProgress(int i) {
-			Looper.prepare();		
-			Toast finishedToast = Toast.makeText(getBaseContext(), 
-					"received File(s)", Toast.LENGTH_LONG);			
+			Looper.prepare();
+			Toast finishedToast = Toast.makeText(getBaseContext(),
+					"received File(s)", Toast.LENGTH_LONG);
 
-			
-			finishedToast.show();			
+
+			finishedToast.show();
+			Looper.loop();
 		}
-		
+
 		// force server stop
 		private void stopServer() {
 			isStopped = true;
@@ -183,7 +186,7 @@ public class ControlService extends Service {
 				sslServerSocket.close();
 			} catch (IOException e) {}
 		}
-		
+
 	}
 
 	//stores sent sms in sent folder
@@ -202,19 +205,19 @@ public class ControlService extends Service {
 	    }
 	    return ret;
 	}
-	
+
 	public void sendSMS(String data) throws JSONException {
 		JSONObject smsjobject = new JSONObject(data);
     	String number = smsjobject.getString("number");
     	String message = smsjobject.getString("message");
     	SmsManager smsManager = SmsManager.getDefault();
-    	
+
 		smsManager.sendTextMessage(number, null, message, null, null);
 		storeSMS(number,message);
-		
-		SMSToastMessage.show();		
+
+		SMSToastMessage.show();
 	}
-	
+
 	// play default ringtone with Notification
 	public void playPing(String data) {
 		Uri ringtone = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
@@ -222,29 +225,29 @@ public class ControlService extends Service {
 		        new NotificationCompat.Builder(this)
 		        .setSmallIcon(R.drawable.connector_launcher)
 		        .setContentTitle("Ping!")
-		        .setContentText("from "+data)
+		        .setContentText("from " + data)
 		        .setSound(ringtone);
-		
+
 		NotificationManager notificationManager =
 			    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
 		notificationManager.notify(555, mBuilder.build());
 	}
-	
+
 	private void receiveFiles(String[] filenames, SSLSocket socket) throws IOException {
 		DataInputStream dataInFromClient = new DataInputStream(socket.getInputStream());
 		BufferedReader inFromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		DataOutputStream outToClient = new DataOutputStream(socket.getOutputStream());
-		
+
 		File downloadfolder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-		
+
 		for (int i=0; i<filenames.length; i++) {
 			String filename = filenames[i];
 
 			// receive Filesize
 			String ins = inFromClient.readLine();
 			long filesize = Long.parseLong(ins);
-			
+
 			byte[] buffer = new byte[4096];
 			int loopcnt = Math.round(filesize/4096);
 			int lastbytes = (int) (filesize % 4096);
@@ -252,26 +255,76 @@ public class ControlService extends Service {
 			// open File
 			File newFile = new File(downloadfolder, filename);
 			FileOutputStream fos = new FileOutputStream(newFile);
-			
+
 			// send ready
 			outToClient.write(1);
 			// send Data
-			for (int j=0; j<loopcnt; j++) {
-				dataInFromClient.read(buffer, 0, 4096);
-				fos.write(buffer, 0, 4096);
+			/*try {
+				for (int j = 0; j < loopcnt; j++) {
+					dataInFromClient.read(buffer, 0, 4096);
+					fos.write(buffer, 0, 4096);
+					Log.d("Data: ",new StringBuilder().append(j).append("/").append(loopcnt).toString());
+				}
+				dataInFromClient.read(buffer, 0, lastbytes);
+				fos.write(buffer, 0, lastbytes);
+
+			} catch (Exception e) {
+				Log.d("Exception:", e.getMessage());
+			}finally {
+				fos.flush();
+				fos.close();
+			}*/
+			try {
+				int bytes = -1;
+				while ((bytes = dataInFromClient.read(buffer, 0, 4096)) != -1) {
+					fos.write(buffer, 0, bytes);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				if (fos != null) {
+					try {
+						fos.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
 			}
-			dataInFromClient.read(buffer, 0, lastbytes);
-			fos.write(buffer, 0, lastbytes);
-			fos.flush();
-			fos.close();						
+
+
+		//Notify the user
+			Uri ringtone = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
+			Intent intent = new Intent(Intent.ACTION_VIEW);
+			intent.setDataAndType(Uri.fromFile(newFile), MimeTypeMap.getSingleton()
+					.getMimeTypeFromExtension(MimeTypeMap.getFileExtensionFromUrl(downloadfolder + "/" + filename)));
+			TaskStackBuilder stackBuilder = TaskStackBuilder
+					.create(this);
+			stackBuilder.addNextIntent(intent);
+			final PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0,
+					PendingIntent.FLAG_UPDATE_CURRENT);
+
+			NotificationCompat.Builder mBuilder =
+					new NotificationCompat.Builder(this)
+							.setSmallIcon(R.drawable.connector_launcher)
+							.setContentTitle("File Recieved")
+							.setContentText(filename+" was saved in "+downloadfolder)
+							.setSound(ringtone)
+							.setContentIntent(resultPendingIntent)
+							.addAction(R.drawable.connector_launcher, "Open File", resultPendingIntent)
+							.setAutoCancel(true);
+
+			NotificationManager notificationManager =
+					(NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+			notificationManager.notify(555, mBuilder.build());
 		}
 	}
-	
+
     public byte[] convertChartoByteArray(char[] chars) {
 	    byte[] bytes = String.valueOf(chars).getBytes();
 	    return bytes;
-    }	
-	
+    }
+
 	private byte[] readWithMaxBuffer(BufferedReader inFromServer) throws IOException {
         char[] recvbuffer = new char[4096]; // avoid buffer overflow
 
@@ -281,7 +334,7 @@ public class ControlService extends Service {
         	tmp_dataArray[i] = recvbuffer[i];
         }
         byte[] data = convertChartoByteArray(tmp_dataArray);
-    
+
 		return data;
 	}
 }

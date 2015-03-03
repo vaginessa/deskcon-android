@@ -140,10 +140,12 @@ public class SendFilesService extends Service {
 		      inputstream.read();
 		      long cnt = Math.round(filesize / 4096)+1;
 		      
-		      for (long i=0; i < cnt; i++) {    		  
-		    	  int bytesread = bis.read(buffer, 0, 4096);
-		    	  outputstream.write(buffer, 0 ,bytesread);
-			      outputstream.flush();
+		      for (long i=0; i < cnt; i++) {
+				  int bytesread = -1;
+		    	  if ((bytesread = bis.read(buffer, 0, 4096)) != -1){
+					  outputstream.write(buffer, 0, bytesread);
+					  outputstream.flush();
+				  }
 		      }
 		}		
 		
