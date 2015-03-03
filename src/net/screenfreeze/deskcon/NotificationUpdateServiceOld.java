@@ -67,10 +67,10 @@ public class NotificationUpdateServiceOld extends AccessibilityService {
 							startUpdateServiceCommand(packageName, title, text, stream);
 							return;
 						}
-					} else if (extras.containsKey(Notification.EXTRA_TITLE)){
+					} else if (extras.containsKey(Notification.EXTRA_TITLE)) {
 						String title = extras.getString(Notification.EXTRA_TITLE);
 						String text = "";
-						if (extras.containsKey(Notification.EXTRA_TEXT)){
+						if (extras.containsKey(Notification.EXTRA_TEXT)) {
 							text = extras.getString(Notification.EXTRA_TEXT);
 						}
 						startUpdateServiceCommand(packageName, title, text, null);

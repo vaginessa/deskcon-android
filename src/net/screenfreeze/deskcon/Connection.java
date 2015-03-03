@@ -28,7 +28,7 @@ import android.os.Build;
 import android.util.Log;
 
 public class Connection {
-	
+
 	public static SSLContext initSSLContext(Context context) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, UnrecoverableKeyException, KeyManagementException {
 		// load the keystore
 		InputStream keyStoreStream;
@@ -43,33 +43,32 @@ public class Connection {
 //		while(aliases.hasMoreElements()) {
 //			System.out.println(aliases.nextElement());
 //		}
-		
+
 		// initialize trust manager factory with the read truststore
-	    TrustManagerFactory trustManagerFactory = null;
-	    trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+		TrustManagerFactory trustManagerFactory = null;
+		trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
 		trustManagerFactory.init(MyKeyStore);
 		TrustManager[] tm = trustManagerFactory.getTrustManagers();
-		
+
 		// init KeyManagerFactory
 		KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
 		keyManagerFactory.init(MyKeyStore, "passwd".toCharArray());
 		KeyManager[] km = keyManagerFactory.getKeyManagers();
-		
-		
+
+
 		// Set SSL Context
 		SSLContext sslcontext;
-		if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN ) {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
 			sslcontext = SSLContext.getInstance("TLSv1.2");
-		}
-		else {
+		} else {
 			sslcontext = SSLContext.getInstance("TLSv1");
 		}
-		
+
 		sslcontext.init(km, tm, new SecureRandom());
-		
+
 		return sslcontext;
 	}
-	
+
 	public static SSLSocket createSSLSocket(Context context, String host, int port) throws UnknownHostException, IOException {
 		// init SSL Context
 		SSLContext sslcontext = null;
@@ -77,27 +76,26 @@ public class Connection {
 			sslcontext = initSSLContext(context);
 		} catch (Exception e) {
 			e.printStackTrace();
-		}		
-		
-		// make secure Connection
-	    SSLSocketFactory factory = (SSLSocketFactory) sslcontext.getSocketFactory();
-	    SSLSocket sslsocket = (SSLSocket) factory.createSocket();
-	    sslsocket.setUseClientMode(true);
-	    sslsocket.connect(new InetSocketAddress(host, port), 500);
-	    
-	    if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN ) {
-	    	sslsocket.setEnabledProtocols(new String[] {"TLSv1","TLSv1.1","TLSv1.2"});
-	    }
-	    else {
-	    	sslsocket.setEnabledProtocols(new String[] {"TLSv1"});
-	    }
+		}
 
-	    Log.d("Connection: ", "using Protocol "+sslsocket.getSession().getProtocol());
-	    Log.d("Connection: ", "Session valid  "+sslsocket.getSession().isValid());
-		
+		// make secure Connection
+		SSLSocketFactory factory = (SSLSocketFactory) sslcontext.getSocketFactory();
+		SSLSocket sslsocket = (SSLSocket) factory.createSocket();
+		sslsocket.setUseClientMode(true);
+		sslsocket.connect(new InetSocketAddress(host, port), 500);
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+			sslsocket.setEnabledProtocols(new String[]{"TLSv1", "TLSv1.1", "TLSv1.2"});
+		} else {
+			sslsocket.setEnabledProtocols(new String[]{"TLSv1"});
+		}
+
+		Log.d("Connection: ", "using Protocol " + sslsocket.getSession().getProtocol());
+		Log.d("Connection: ", "Session valid  " + sslsocket.getSession().isValid());
+
 		return sslsocket;
 	}
-	
+
 	public static SSLServerSocket createSSLServerSocket(Context context, int port) throws IOException {
 		// get ssl context
 		SSLContext sslcontext = null;
@@ -105,20 +103,19 @@ public class Connection {
 			sslcontext = initSSLContext(context);
 		} catch (Exception e) {
 			e.printStackTrace();
-		}	
-		
+		}
+
 		// make secure Connection
-	    SSLServerSocketFactory factory = (SSLServerSocketFactory) sslcontext.getServerSocketFactory();
-	    SSLServerSocket sslServerSocket = (SSLServerSocket) factory.createServerSocket(port);
-	    if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN ) {
-	    	sslServerSocket.setEnabledProtocols(new String[] {"TLSv1","TLSv1.1","TLSv1.2"});
-	    }
-	    else {
-	    	sslServerSocket.setEnabledProtocols(new String[] {"TLSv1"});
-	    }
+		SSLServerSocketFactory factory = (SSLServerSocketFactory) sslcontext.getServerSocketFactory();
+		SSLServerSocket sslServerSocket = (SSLServerSocket) factory.createServerSocket(port);
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+			sslServerSocket.setEnabledProtocols(new String[]{"TLSv1", "TLSv1.1", "TLSv1.2"});
+		} else {
+			sslServerSocket.setEnabledProtocols(new String[]{"TLSv1"});
+		}
 		sslServerSocket.setNeedClientAuth(true);
-	    sslServerSocket.setReuseAddress(true);
-	    
-	    return sslServerSocket;
+		sslServerSocket.setReuseAddress(true);
+
+		return sslServerSocket;
 	}
 }

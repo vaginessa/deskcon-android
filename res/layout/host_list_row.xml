@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:layout_marginLeft="5dip" >
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="5dip">
 
     <TextView
         android:id="@+id/hostnametextView"
@@ -11,7 +11,7 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="5dip"
         android:text="Host"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
+        android:textAppearance="?android:attr/textAppearanceLarge"/>
 
     <LinearLayout
         android:id="@+id/linearLayout1"
@@ -20,19 +20,19 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="false"
         android:layout_below="@+id/hostnametextView"
-        android:layout_marginLeft="5dip" >
+        android:layout_marginLeft="5dip">
 
         <TextView
             android:id="@+id/widgethosttextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="IP:" />
+            android:text="IP:"/>
 
         <TextView
             android:id="@+id/hostiptextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="TextView" />
+            android:text="TextView"/>
     </LinearLayout>
 
     <LinearLayout
@@ -41,21 +41,21 @@
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_below="@+id/linearLayout1"
-        android:layout_marginLeft="5dip" >
+        android:layout_marginLeft="5dip">
 
         <TextView
             android:id="@+id/myfptextView"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"           
+            android:layout_height="wrap_content"
             android:text="ID:"
-            android:textAppearance="?android:attr/textAppearanceSmall" />
+            android:textAppearance="?android:attr/textAppearanceSmall"/>
 
         <TextView
             android:id="@+id/hostidtextView"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"            
+            android:layout_height="wrap_content"
             android:text="TextView"
-            android:textAppearance="?android:attr/textAppearanceSmall" />
+            android:textAppearance="?android:attr/textAppearanceSmall"/>
     </LinearLayout>
 
     <ImageView
@@ -66,7 +66,7 @@
         android:layout_centerVertical="true"
         android:layout_marginRight="5dip"
         android:src="@android:drawable/ic_menu_delete"
-        tools:ignore="ContentDescription" />
+        tools:ignore="ContentDescription"/>
 
     <TextView
         android:id="@+id/wifitextView"
@@ -75,6 +75,6 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
         android:layout_marginRight="5dip"
-        android:text="TextView" />
+        android:text="TextView"/>
 
 </RelativeLayout>

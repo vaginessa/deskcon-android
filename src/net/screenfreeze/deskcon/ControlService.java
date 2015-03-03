@@ -54,7 +54,7 @@ public class ControlService extends Service {
 	@Override
 	public void onCreate() {
 		sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-		SMSToastMessage = Toast.makeText(getApplicationContext(), "SMS Sent",Toast.LENGTH_LONG);
+		SMSToastMessage = Toast.makeText(getApplicationContext(), "SMS Sent", Toast.LENGTH_LONG);
 		PORT = Integer.parseInt(sharedPrefs.getString("control_port", "9096"));
 		super.onCreate();
 	}
@@ -70,27 +70,27 @@ public class ControlService extends Service {
 	// workaround: sys stops task when UI closes
 	@SuppressLint("NewApi")
 	@Override
-	public void onTaskRemoved(Intent rootIntent){
-	    Intent restartServiceIntent = new Intent(getApplicationContext(), this.getClass());
-	    restartServiceIntent.setPackage(getPackageName());
+	public void onTaskRemoved(Intent rootIntent) {
+		Intent restartServiceIntent = new Intent(getApplicationContext(), this.getClass());
+		restartServiceIntent.setPackage(getPackageName());
 
-	    PendingIntent restartServicePendingIntent = PendingIntent.getService(getApplicationContext(), 1, restartServiceIntent, PendingIntent.FLAG_ONE_SHOT);
-	    AlarmManager alarmService = (AlarmManager) getApplicationContext().getSystemService(Context.ALARM_SERVICE);
-	    alarmService.set(
-	    AlarmManager.ELAPSED_REALTIME,
-	    SystemClock.elapsedRealtime() + 1000,
-	    restartServicePendingIntent);
+		PendingIntent restartServicePendingIntent = PendingIntent.getService(getApplicationContext(), 1, restartServiceIntent, PendingIntent.FLAG_ONE_SHOT);
+		AlarmManager alarmService = (AlarmManager) getApplicationContext().getSystemService(Context.ALARM_SERVICE);
+		alarmService.set(
+				AlarmManager.ELAPSED_REALTIME,
+				SystemClock.elapsedRealtime() + 1000,
+				restartServicePendingIntent);
 
-	    super.onTaskRemoved(rootIntent);
-	 }
+		super.onTaskRemoved(rootIntent);
+	}
 
 	@SuppressLint("NewApi")
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		controlserver = new ControlServer();
 
-	    Thread cs = new Thread(controlserver);
-	    cs.start();
+		Thread cs = new Thread(controlserver);
+		cs.start();
 
 		return START_STICKY;
 	}
@@ -135,8 +135,8 @@ public class ControlService extends Service {
 			BufferedReader inFromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			DataOutputStream outToClient = new DataOutputStream(socket.getOutputStream());
 			// receive Data
-	        byte[] data = readWithMaxBuffer(inFromClient);
-	        String datastring = new String(data);
+			byte[] data = readWithMaxBuffer(inFromClient);
+			String datastring = new String(data);
 			outToClient.write("OK".getBytes());
 
 			Log.d("Control: ", "received CMD");
@@ -161,7 +161,7 @@ public class ControlService extends Service {
 				Log.d("Control: ", "File Transfer");
 				JSONArray jarray = new JSONArray(cmddata);
 				String[] filenames = new String[jarray.length()];
-				for (int i=0; i<jarray.length(); i++) {
+				for (int i = 0; i < jarray.length(); i++) {
 					filenames[i] = jarray.getString(i);
 				}
 				receiveFiles(filenames, socket);
@@ -184,36 +184,37 @@ public class ControlService extends Service {
 			isStopped = true;
 			try {
 				sslServerSocket.close();
-			} catch (IOException e) {}
+			} catch (IOException e) {
+			}
 		}
 
 	}
 
 	//stores sent sms in sent folder
 	public boolean storeSMS(String number, String message) {
-	    boolean ret = false;
-	    try {
-	        ContentValues values = new ContentValues();
-	        values.put("address", number);
-	        values.put("body", message);
-	        values.put("read", true);
+		boolean ret = false;
+		try {
+			ContentValues values = new ContentValues();
+			values.put("address", number);
+			values.put("body", message);
+			values.put("read", true);
 
-	        getContentResolver().insert(Uri.parse("content://sms/sent"), values);
-	        ret = true;
-	    } catch (Exception ex) {
-	        ret = false;
-	    }
-	    return ret;
+			getContentResolver().insert(Uri.parse("content://sms/sent"), values);
+			ret = true;
+		} catch (Exception ex) {
+			ret = false;
+		}
+		return ret;
 	}
 
 	public void sendSMS(String data) throws JSONException {
 		JSONObject smsjobject = new JSONObject(data);
-    	String number = smsjobject.getString("number");
-    	String message = smsjobject.getString("message");
-    	SmsManager smsManager = SmsManager.getDefault();
+		String number = smsjobject.getString("number");
+		String message = smsjobject.getString("message");
+		SmsManager smsManager = SmsManager.getDefault();
 
 		smsManager.sendTextMessage(number, null, message, null, null);
-		storeSMS(number,message);
+		storeSMS(number, message);
 
 		SMSToastMessage.show();
 	}
@@ -222,14 +223,14 @@ public class ControlService extends Service {
 	public void playPing(String data) {
 		Uri ringtone = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
 		NotificationCompat.Builder mBuilder =
-		        new NotificationCompat.Builder(this)
-		        .setSmallIcon(R.drawable.connector_launcher)
-		        .setContentTitle("Ping!")
-		        .setContentText("from " + data)
-		        .setSound(ringtone);
+				new NotificationCompat.Builder(this)
+						.setSmallIcon(R.drawable.connector_launcher)
+						.setContentTitle("Ping!")
+						.setContentText("from " + data)
+						.setSound(ringtone);
 
 		NotificationManager notificationManager =
-			    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+				(NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
 		notificationManager.notify(555, mBuilder.build());
 	}
@@ -241,7 +242,7 @@ public class ControlService extends Service {
 
 		File downloadfolder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
 
-		for (int i=0; i<filenames.length; i++) {
+		for (int i = 0; i < filenames.length; i++) {
 			String filename = filenames[i];
 
 			// receive Filesize
@@ -249,7 +250,7 @@ public class ControlService extends Service {
 			long filesize = Long.parseLong(ins);
 
 			byte[] buffer = new byte[4096];
-			int loopcnt = Math.round(filesize/4096);
+			int loopcnt = Math.round(filesize / 4096);
 			int lastbytes = (int) (filesize % 4096);
 
 			// open File
@@ -292,7 +293,7 @@ public class ControlService extends Service {
 			}
 
 
-		//Notify the user
+			//Notify the user
 			Uri ringtone = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
 			Intent intent = new Intent(Intent.ACTION_VIEW);
 			intent.setDataAndType(Uri.fromFile(newFile), MimeTypeMap.getSingleton()
@@ -307,7 +308,7 @@ public class ControlService extends Service {
 					new NotificationCompat.Builder(this)
 							.setSmallIcon(R.drawable.connector_launcher)
 							.setContentTitle("File Recieved")
-							.setContentText(filename+" was saved in "+downloadfolder)
+							.setContentText(filename + " was saved in " + downloadfolder)
 							.setSound(ringtone)
 							.setContentIntent(resultPendingIntent)
 							.addAction(R.drawable.connector_launcher, "Open File", resultPendingIntent)
@@ -320,20 +321,20 @@ public class ControlService extends Service {
 		}
 	}
 
-    public byte[] convertChartoByteArray(char[] chars) {
-	    byte[] bytes = String.valueOf(chars).getBytes();
-	    return bytes;
-    }
+	public byte[] convertChartoByteArray(char[] chars) {
+		byte[] bytes = String.valueOf(chars).getBytes();
+		return bytes;
+	}
 
 	private byte[] readWithMaxBuffer(BufferedReader inFromServer) throws IOException {
-        char[] recvbuffer = new char[4096]; // avoid buffer overflow
+		char[] recvbuffer = new char[4096]; // avoid buffer overflow
 
-        int readcnt = inFromServer.read(recvbuffer);
-        char[] tmp_dataArray = new char[readcnt];
-        for (int i=0; i<tmp_dataArray.length; i++) {
-        	tmp_dataArray[i] = recvbuffer[i];
-        }
-        byte[] data = convertChartoByteArray(tmp_dataArray);
+		int readcnt = inFromServer.read(recvbuffer);
+		char[] tmp_dataArray = new char[readcnt];
+		for (int i = 0; i < tmp_dataArray.length; i++) {
+			tmp_dataArray[i] = recvbuffer[i];
+		}
+		byte[] data = convertChartoByteArray(tmp_dataArray);
 
 		return data;
 	}
