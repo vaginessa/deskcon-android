@@ -9,8 +9,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 
+import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSocket;
 
+import android.app.NotificationManager;
+import android.support.v4.app.NotificationCompat;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -133,19 +136,50 @@ public class SendFilesService extends Service {
 			OutputStream outputstream = sslsocket.getOutputStream();
 			InputStream inputstream = sslsocket.getInputStream();
 
+			int notificationId = 1090;
+			NotificationManager mNotifyManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+			NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(getBaseContext());
+			mBuilder.setContentTitle("File Upload")
+					.setContentText("Upwnload in progress")
+					.setOngoing(true)
+					//.setProgress(100,0,true)
+					.setSmallIcon(R.drawable.connector_launcher);
+			mNotifyManager.notify(notificationId, mBuilder.build());
+
 			// send file size
 			outputstream.write(String.valueOf(filesize).getBytes());
 			// wait for ready
 			inputstream.read();
 			long cnt = Math.round(filesize / 4096) + 1;
+			int lastProgress = -1, tmp;
 
-			for (long i = 0; i < cnt; i++) {
-				int bytesread = -1;
-				if ((bytesread = bis.read(buffer, 0, 4096)) != -1) {
-					outputstream.write(buffer, 0, bytesread);
-					outputstream.flush();
+			try {
+				for (long i = 0; i < cnt; i++) {
+					int bytesread = -1;
+					if ((bytesread = bis.read(buffer, 0, 4096)) != -1) {
+						outputstream.write(buffer, 0, bytesread);
+						outputstream.flush();
+					}
+					//Notify
+					if (lastProgress < (tmp = (int)((double) i/cnt * 100)) ){
+						lastProgress = tmp;
+						mBuilder.setProgress(100, tmp, false)
+								.setContentText("Upload in progress " +tmp+"%");
+						mNotifyManager.notify(notificationId, mBuilder.build());
+					}
 				}
+			} catch (SSLException e){
+				mBuilder.setContentTitle("Upload failed!")
+						.setContentText("Reason:" + e.toString())
+						.setProgress(0,0,false)
+						.setOngoing(false);
+				mNotifyManager.notify(notificationId, mBuilder.build());
 			}
+
+			mBuilder.setContentText("Upload complete")
+					.setProgress(0,0,false)
+					.setOngoing(false);
+			mNotifyManager.notify(notificationId, mBuilder.build());
 		}
 
 		private void sendData() throws Exception {
