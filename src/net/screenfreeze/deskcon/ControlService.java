@@ -1,12 +1,6 @@
 package net.screenfreeze.deskcon;
 
-import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLSocket;
@@ -255,6 +249,20 @@ public class ControlService extends Service {
 
 			// open File
 			File newFile = new File(downloadfolder, filename);
+			//check if that file already exists and rename new one
+			int suffix = 0;
+			String[] tokens = filename.split("\\.(?=[^\\.]+$)");
+			while (newFile.exists()){
+				suffix++;
+				if (tokens.length > 1) {
+					filename = tokens[0] + " (" + suffix + ")." + tokens[1];
+					newFile = new File(downloadfolder, filename);
+				} else {
+					filename = tokens[0] + " (" + suffix + ")";
+					newFile = new File(downloadfolder, filename);
+				}
+			}
+
 			FileOutputStream fos = new FileOutputStream(newFile);
 
 			// send ready
