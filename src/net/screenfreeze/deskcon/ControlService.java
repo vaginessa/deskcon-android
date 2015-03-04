@@ -6,6 +6,7 @@ import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLSocket;
 
 import android.content.*;
+import android.media.AudioManager;
 import android.os.*;
 import android.support.v4.app.TaskStackBuilder;
 import android.webkit.MimeTypeMap;
@@ -223,8 +224,11 @@ public class ControlService extends Service {
 				new NotificationCompat.Builder(this)
 						.setSmallIcon(R.drawable.connector_launcher)
 						.setContentTitle("Ping!")
-						.setContentText("from " + data)
-						.setSound(ringtone);
+						.setContentText("from " + data);
+		if (sharedPrefs.getBoolean("ring_muted", false))
+			mBuilder.setSound(ringtone, AudioManager.STREAM_ALARM); //STREAM_ALARM so the phone will ring even if it's muted);
+		else
+			mBuilder.setSound(ringtone);
 
 		NotificationManager notificationManager =
 				(NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);

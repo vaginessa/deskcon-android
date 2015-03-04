@@ -95,6 +95,11 @@
                 android:summary="used Storage Space"
                 android:title="Send Storage Info"
                 android:defaultValue="True"/>
+            <CheckBoxPreference
+                android:title="Ring on Ping"
+                android:summary="even if Device is muted"
+                android:key="ring_muted"
+                android:defaultValue="True"/>
 
         </PreferenceScreen>
     </PreferenceCategory>
