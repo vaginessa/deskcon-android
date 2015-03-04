@@ -1,18 +1,19 @@
 package net.screenfreeze.deskcon;
 
 import java.io.ByteArrayOutputStream;
-import java.nio.Buffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;
 import android.app.Notification;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Base64;
@@ -46,25 +47,32 @@ public class NotificationUpdateServiceOld extends AccessibilityService {
 				Log.d("Notification: ", "new post");
 
 				if (android.os.Build.VERSION.SDK_INT >= 19) {
-					String packageName = getAppnameFromPackagename(packagename);
+					String appName = getAppnameFromPackagename(packagename);
 
 					Bundle extras = not.extras;
 					if (extras.containsKey(Notification.EXTRA_TEMPLATE)) {
 						String template = extras.getString(Notification.EXTRA_TEMPLATE);
 						if (template.equals(Notification.BigTextStyle.class.getName())) {
-							String title = extras.getString(Notification.EXTRA_TITLE_BIG);
-							if (title == null || title.isEmpty()) title = extras.getString(Notification.EXTRA_TITLE);
+							String title = getNotificationTitle(extras);
 							String text = extras.getString(Notification.EXTRA_BIG_TEXT);
 							if (text == null || text.isEmpty()) text = extras.getString(Notification.EXTRA_TEXT);
 							String[] people = (String[]) extras.get(Notification.EXTRA_PEOPLE);
 
-							Bitmap icon = (Bitmap) extras.get(Notification.EXTRA_LARGE_ICON_BIG);
-							if (icon == null) icon = (Bitmap) extras.get(Notification.EXTRA_LARGE_ICON);
-							if (icon == null) icon = (Bitmap) extras.get(Notification.EXTRA_SMALL_ICON);
+							Bitmap icon = getNotificationBitmapFromExtras(packagename, extras);
 
-							ByteArrayOutputStream stream = new ByteArrayOutputStream();
-							icon.compress(Bitmap.CompressFormat.PNG, 100, stream);
-							startUpdateServiceCommand(packageName, title, text, stream);
+							startUpdateServiceCommand(appName, title, text, getByteArrayOutputStream(icon));
+							return;
+						} else if (template.equals(Notification.InboxStyle.class.getName())){
+							String title = getNotificationTitle(extras);
+							CharSequence[] texts = extras.getCharSequenceArray(Notification.EXTRA_TEXT_LINES);
+							String text = "";
+							for(CharSequence ch: texts){
+								text += "\n"+ch.toString();
+							}
+							if (text.equals("")) text = not.tickerText.toString();
+
+							Bitmap icon = getNotificationBitmapFromExtras(packagename, extras);
+							startUpdateServiceCommand(appName, title, text, getByteArrayOutputStream(icon));
 							return;
 						}
 					} else if (extras.containsKey(Notification.EXTRA_TITLE)) {
@@ -73,7 +81,7 @@ public class NotificationUpdateServiceOld extends AccessibilityService {
 						if (extras.containsKey(Notification.EXTRA_TEXT)) {
 							text = extras.getString(Notification.EXTRA_TEXT);
 						}
-						startUpdateServiceCommand(packageName, title, text, null);
+						startUpdateServiceCommand(appName, title, text, null);
 						return;
 					}
 				}
@@ -84,6 +92,31 @@ public class NotificationUpdateServiceOld extends AccessibilityService {
 				}
 			}
 		}
+	}
+
+	private String getNotificationTitle(Bundle extras) {
+		String title = extras.getString(Notification.EXTRA_TITLE_BIG);
+		if (title == null || title.isEmpty()) title = extras.getString(Notification.EXTRA_TITLE);
+		return title;
+	}
+
+	private ByteArrayOutputStream getByteArrayOutputStream(Bitmap icon) {
+		ByteArrayOutputStream stream = new ByteArrayOutputStream();
+		icon.compress(Bitmap.CompressFormat.PNG, 100, stream);
+		return stream;
+	}
+
+	private Bitmap getNotificationBitmapFromExtras(String packagename, Bundle extras) {
+		Bitmap icon = (Bitmap) extras.get(Notification.EXTRA_LARGE_ICON_BIG);
+		if (icon == null) icon = (Bitmap) extras.get(Notification.EXTRA_LARGE_ICON);
+		if (icon == null) {
+			try {
+				Context remotePackageContext = getApplicationContext().createPackageContext(packagename, 0);
+				icon = BitmapFactory.decodeResource(remotePackageContext.getResources(), extras.getInt(Notification.EXTRA_SMALL_ICON));
+				//when appname not found - don't inlude icon
+			} catch (PackageManager.NameNotFoundException e) {}
+		}
+		return icon;
 	}
 
 	@Override
