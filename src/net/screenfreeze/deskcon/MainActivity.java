@@ -127,8 +127,8 @@ public class MainActivity extends PreferenceActivity {
 				int currentapiVersion = android.os.Build.VERSION.SDK_INT;
 				if (currentapiVersion >= 18) {
 					// NotificationListener is still buggy
-					//Intent nai = new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"); 
-					Intent nai = new Intent("android.settings.ACCESSIBILITY_SETTINGS");
+					Intent nai = new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS");
+					//Intent nai = new Intent("android.settings.ACCESSIBILITY_SETTINGS");
 					startActivity(nai);
 				} else {
 					Intent nai = new Intent("android.settings.ACCESSIBILITY_SETTINGS");
