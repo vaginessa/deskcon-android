@@ -5,6 +5,8 @@ import java.io.*;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLSocket;
 
+import android.content.*;
+import android.os.*;
 import android.support.v4.app.TaskStackBuilder;
 import android.webkit.MimeTypeMap;
 import org.json.JSONArray;
@@ -16,16 +18,8 @@ import android.app.AlarmManager;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.ContentValues;
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
 import android.media.RingtoneManager;
 import android.net.Uri;
-import android.os.Environment;
-import android.os.IBinder;
-import android.os.Looper;
-import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.telephony.SmsManager;
@@ -97,6 +91,7 @@ public class ControlService extends Service {
 		@Override
 		public void run() {
 			Log.d("Control: ", "start Server");
+			Looper.prepare();
 			try {
 				// create SSLServerSocket
 				sslServerSocket = Connection.createSSLServerSocket(getApplicationContext(), PORT);
@@ -161,10 +156,18 @@ public class ControlService extends Service {
 				receiveFiles(filenames, socket);
 				publishProgress(1);
 			}
+			//CLPBRD
+			else if (cmdtype.equals("clpbrd")) {
+				Log.d("Control: ", "Set Clipboard");
+				JSONObject jobj = new JSONObject(cmddata);
+				if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+					ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+					clipboard.setPrimaryClip(ClipData.newPlainText("Text from Deskcon", jobj.getString("text")));
+				}
+			}
 		}
 
 		private void publishProgress(int i) {
-			Looper.prepare();
 			Toast finishedToast = Toast.makeText(getBaseContext(),
 					"received File(s)", Toast.LENGTH_LONG);
 
