@@ -74,6 +74,14 @@ public class NotificationUpdateServiceOld extends AccessibilityService {
 							Bitmap icon = getNotificationBitmapFromExtras(packagename, extras);
 							startUpdateServiceCommand(appName, title, text, getByteArrayOutputStream(icon));
 							return;
+						} else if (template.equals(Notification.BigPictureStyle.class.getName())){
+							String title = getNotificationTitle(extras);
+							String text = extras.getString(Notification.EXTRA_BIG_TEXT);
+							if (text == null || text.isEmpty()) text = extras.getString(Notification.EXTRA_TEXT);
+
+							Bitmap icon = extras.getParcelable(Notification.EXTRA_PICTURE);
+							startUpdateServiceCommand(appName, title, text, getByteArrayOutputStream(icon));
+							return;
 						}
 					} else if (extras.containsKey(Notification.EXTRA_TITLE)) {
 						String title = extras.getString(Notification.EXTRA_TITLE);
