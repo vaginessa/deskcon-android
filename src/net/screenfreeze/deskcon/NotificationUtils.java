@@ -48,8 +48,8 @@ public class NotificationUtils {
 		JSONObject data = new JSONObject();
 		try {
 			data.put("appName", appName);
-			data.put("title", title);
-			data.put("text", text);
+			data.put("title", title != null ? title : "No Title captured");
+			data.put("text", text != null ? text : "No Text captured");
 			if (icon != null) {
 				data.put("icon", Base64.encodeToString(icon.toByteArray(), Base64.DEFAULT));
 			}
@@ -133,6 +133,7 @@ public class NotificationUtils {
 						String title = getNotificationTitle(extras);
 						String text = extras.getString(Notification.EXTRA_BIG_TEXT);
 						if (text == null || text.isEmpty()) text = extras.getString(Notification.EXTRA_TEXT);
+						if (text == null || text.isEmpty()) text = not.tickerText.toString();
 						String[] people = (String[]) extras.get(Notification.EXTRA_PEOPLE);
 
 						Bitmap icon = getNotificationBitmapFromExtras(packagename, extras);
