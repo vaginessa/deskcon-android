@@ -275,7 +275,7 @@ public class ControlService extends Service {
 			// send ready
 			outToClient.write(1);
 			// send Data
-			/*try {
+			try {
 				for (int j = 0; j < loopcnt; j++) {
 					dataInFromClient.read(buffer, 0, 4096);
 					fos.write(buffer, 0, 4096);
@@ -289,24 +289,7 @@ public class ControlService extends Service {
 			}finally {
 				fos.flush();
 				fos.close();
-			}*/
-			try {
-				int bytes = -1;
-				while ((bytes = dataInFromClient.read(buffer, 0, 4096)) != -1) {
-					fos.write(buffer, 0, bytes);
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			} finally {
-				if (fos != null) {
-					try {
-						fos.close();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				}
 			}
-
 
 			//Notify the user
 			Uri ringtone = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
