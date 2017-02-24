@@ -5,9 +5,12 @@ import java.io.*;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLSocket;
 
+import android.Manifest;
 import android.content.*;
+import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.os.*;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.webkit.MimeTypeMap;
 import org.json.JSONArray;
@@ -237,6 +240,16 @@ public class ControlService extends Service {
 	}
 
 	private void receiveFiles(String[] filenames, SSLSocket socket) throws IOException {
+		Log.d("Control: ", "receiveFiles: called.");
+
+		if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+				!= PackageManager.PERMISSION_GRANTED) {
+			Log.e("Control: ", "receiveFiles: cannot receive files, permission denied.");
+			// TODO: display a nice toast
+			// TODO: tell the client that we couldn't receive the files.
+			return;
+		}
+
 		DataInputStream dataInFromClient = new DataInputStream(socket.getInputStream());
 		BufferedReader inFromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		DataOutputStream outToClient = new DataOutputStream(socket.getOutputStream());
