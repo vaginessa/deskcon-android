@@ -306,19 +306,13 @@ public class MainActivity extends PreferenceActivity {
 				}
 			};
 
-	private void onFirstrun() {
-		// set the UUID
-		TelephonyManager telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-		String UUID = telephonyManager.getDeviceId();
 
-		// if no telephone uid, then generate random number
-		if (UUID == null || UUID.equals("")) {
-			Random rand = new Random();
-			long MAX = 999999999999999L;
-			long MIN = 100000000000000L;
-			long number = Math.abs(Long.valueOf(rand.nextLong() * (MAX - MIN)));
-			UUID = Long.toString(number);
-		}
+	private void onFirstrun() {
+		Random rand = new Random();
+		long MAX = 999999999999999L;
+		long MIN = 100000000000000L;
+		long number = Math.abs(Long.valueOf(rand.nextLong() * (MAX - MIN)));
+		String UUID = Long.toString(number);
 
 		// read default Notification Whitelist
 		InputStream is = this.getResources().openRawResource(R.raw.defaultnotificationwl);
