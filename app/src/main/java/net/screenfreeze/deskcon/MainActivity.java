@@ -18,6 +18,7 @@ import java.util.Random;
 import org.spongycastle.jce.X509Principal;
 import org.spongycastle.x509.X509V3CertificateGenerator;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
@@ -31,12 +32,16 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.content.pm.PackageManager;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -151,12 +156,54 @@ public class MainActivity extends PreferenceActivity {
 
 		sharedPrefs.registerOnSharedPreferenceChangeListener(prefsChangeListener);
 
+		if (checkPermissions()) {
+			// start at firstrun
+			boolean isfirstrun = sharedPrefs.getBoolean("firstrun", true);
+			if (isfirstrun) {
+				onFirstrun();
+			} else {
+				initServices();
+			}
+		}
+	}
+
+	@Override
+	public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
 		// start at firstrun
 		boolean isfirstrun = sharedPrefs.getBoolean("firstrun", true);
 		if (isfirstrun) {
 			onFirstrun();
 		} else {
 			initServices();
+		}
+	}
+
+	public static boolean hasPermissions(Context context, String... permissions) {
+		if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && context != null && permissions != null) {
+			for (String permission : permissions) {
+				if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
+	private boolean checkPermissions() {
+		int PERMISSION_ALL = 1;
+		String[] PERMISSIONS = {
+				Manifest.permission.READ_CONTACTS,
+				Manifest.permission.WRITE_EXTERNAL_STORAGE,
+				Manifest.permission.READ_SMS,
+				Manifest.permission.READ_CALL_LOG
+		};
+
+		if (!hasPermissions(this, PERMISSIONS)) {
+			Log.w("checkPermissions: ", "We don't have all permissions, requesting them.");
+			ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSION_ALL);
+			return false;
+		} else {
+			return true;
 		}
 	}
 
