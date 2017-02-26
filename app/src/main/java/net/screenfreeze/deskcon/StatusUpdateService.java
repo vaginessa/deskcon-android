@@ -19,7 +19,6 @@ import android.content.res.Configuration;
 import android.database.Cursor;
 import android.media.AudioManager;
 import android.net.Uri;
-import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.BatteryManager;
@@ -62,7 +61,7 @@ public class StatusUpdateService extends Service {
 
 	private void loadHosts() {
 		dbhelper = new DesktopHostsDBHelper(this);
-		String current_wifi = getWifiSSID();
+		String current_wifi = WifiUtils.getWifiSSID(getApplicationContext());
 
 		Cursor cursor = dbhelper.getHostsOnWifiCursor(current_wifi);
 		int hostcount = cursor.getCount();
@@ -449,22 +448,6 @@ public class StatusUpdateService extends Service {
 	@Override
 	public IBinder onBind(Intent arg0) {
 		return null;
-	}
-
-	private String getWifiSSID() {
-		String ssid = "";
-		WifiManager wifiManager = (WifiManager) getApplicationContext()
-				.getSystemService(Context.WIFI_SERVICE);
-		try {
-			WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-			ssid = wifiInfo.getSSID();
-		} catch (Exception a) {
-		}
-
-		if (ssid == null) {
-			ssid = "";
-		}
-		return ssid;
 	}
 
 	private int getWifiStrength() {
