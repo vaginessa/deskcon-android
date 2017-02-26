@@ -8,6 +8,7 @@ import javax.net.ssl.SSLSocket;
 import android.Manifest;
 import android.content.*;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.media.AudioManager;
 import android.os.*;
 import android.support.v4.app.ActivityCompat;
@@ -16,6 +17,7 @@ import android.webkit.MimeTypeMap;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.kde.kdeconnect.Plugins.ClipboardListener;
 
 import android.annotation.SuppressLint;
 import android.app.AlarmManager;
@@ -36,6 +38,7 @@ public class ControlService extends Service {
 	private static int PORT;
 	private static ControlServer controlserver;
 	private static Toast SMSToastMessage;
+	private static String prevClipboardText = null;
 
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -48,6 +51,7 @@ public class ControlService extends Service {
 		sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 		SMSToastMessage = Toast.makeText(getApplicationContext(), "SMS Sent", Toast.LENGTH_LONG);
 		PORT = Integer.parseInt(sharedPrefs.getString("control_port", "9096"));
+		ClipboardListener.instance(this).registerObserver(observer);
 		super.onCreate();
 	}
 
@@ -58,6 +62,48 @@ public class ControlService extends Service {
 		controlserver.stopServer();
 		super.onDestroy();
 	}
+
+	private ClipboardListener.ClipboardObserver observer = new ClipboardListener.ClipboardObserver() {
+		@Override
+		public void clipboardChanged(String content) {
+			Log.d("Control: ", "clipboardChanged");
+			if (content == null || content.length() == 0) {
+				Log.d("Control: ", "clipboardChanged: not sending empty clipboard.");
+				return;
+			}
+
+			if (prevClipboardText != null && prevClipboardText.equals(content)) {
+				Log.d("Control: ", "clipboardChanged: clipboard remained the same, not sending it.");
+				return;
+			}
+
+			prevClipboardText = content;
+
+			Context context = getApplicationContext();
+
+			DesktopHostsDBHelper dbhelper = new DesktopHostsDBHelper(context);
+			String current_wifi = WifiUtils.getWifiSSID(context);
+
+			Cursor cursor = dbhelper.getHostsOnWifiCursor(current_wifi);
+			int hostcount = cursor.getCount();
+			if (hostcount == 0) {
+				// FIXME: Only send the clipboard to the first host
+				Log.i("Control: ", "No hosts found.");
+				return;
+			}
+
+			String host = cursor.getString(2);
+			int port = cursor.getInt(3);
+			cursor.close();
+
+			Intent i = new Intent(getApplicationContext(), StatusUpdateService.class);
+			i.putExtra("commandtype", "CLPBRD");
+			i.putExtra("message", content);
+			i.putExtra("host", host);
+			i.putExtra("port", port);
+			startService(i);
+		}
+	};
 
 	// workaround: sys stops task when UI closes
 	@SuppressLint("NewApi")
@@ -166,6 +212,17 @@ public class ControlService extends Service {
 				JSONObject jobj = new JSONObject(cmddata);
 				if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
 					ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+					ClipData clipData = clipboard.getPrimaryClip();
+
+					String currentClipboardText = null;
+					if (clipData.getItemCount() > 0) {
+						currentClipboardText = clipData.getItemAt(0).getText().toString();
+					}
+
+					if (jobj.getString("text").equals(currentClipboardText)) {
+						Log.d("Control: ", "The clipboard hasn't changed, not updating it.");
+						return;
+					}
 					clipboard.setPrimaryClip(ClipData.newPlainText("Text from Deskcon", jobj.getString("text")));
 				}
 			}
