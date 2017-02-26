@@ -1,4 +1,8 @@
-TODO:
+TODO (android specific TODO):
 
 - Update app on Google Play
-- Handle in a better way permissions
+- Handle permissions in a better
+
+TODO (project TODO):
+
+Read TODO from deskcon-desktop project.
