@@ -9,8 +9,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -35,7 +33,7 @@ public class ShareActivity extends Activity {
 
 		final Intent intent = getIntent();
 		dbhelper = new DesktopHostsDBHelper(this);
-		String current_wifi = getWifiSSID();
+		String current_wifi = WifiUtils.getWifiSSID(getApplicationContext());
 
 		Cursor cursor = dbhelper.getHostsOnWifiCursor(current_wifi);
 		int hostcount = cursor.getCount();
@@ -186,22 +184,6 @@ public class ShareActivity extends Activity {
 		String path = cursor.getString(column_index);
 
 		return path;
-	}
-
-	private String getWifiSSID() {
-		String ssid = null;
-		WifiManager wifiManager = (WifiManager) getApplicationContext()
-				.getSystemService(Context.WIFI_SERVICE);
-		try {
-			WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-			ssid = wifiInfo.getSSID();
-		} catch (Exception a) {
-		}
-
-		if (ssid == null) {
-			ssid = "";
-		}
-		return ssid;
 	}
 
 	public class HostsAdapter extends CursorAdapter {

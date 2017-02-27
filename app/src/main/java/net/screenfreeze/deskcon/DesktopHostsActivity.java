@@ -1,6 +1,5 @@
 package net.screenfreeze.deskcon;
 
-import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -9,7 +8,6 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.Formatter;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -18,7 +16,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
-import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.MulticastLock;
 import android.os.AsyncTask;
@@ -155,7 +152,7 @@ public class DesktopHostsActivity extends Activity {
 
 		responseserver = new DiscoveryTask(dha);
 
-		final String wifi = getWifiSSID();
+		final String wifi = WifiUtils.getWifiSSID(getApplicationContext());
 		wifilockcheckbox.setText("only on " + wifi);
 
 		foundHostsListView.setAdapter(dha);
@@ -227,7 +224,7 @@ public class DesktopHostsActivity extends Activity {
 
 		if (wifi.equals("")) {
 			wifilockcheckbox.setChecked(false);
-			currentwifi = getWifiSSID();
+			currentwifi = WifiUtils.getWifiSSID(getApplicationContext());
 			wifilockcheckbox.setText("only on " + currentwifi);
 		} else {
 			wifilockcheckbox.setChecked(true);
@@ -264,23 +261,6 @@ public class DesktopHostsActivity extends Activity {
 		});
 		AlertDialog alertDialog = alertDialogBuilder.create();
 		alertDialog.show();
-	}
-
-	// get current SSID of connected Wifi
-	private String getWifiSSID() {
-		String ssid = "";
-		WifiManager wifiManager = (WifiManager) getApplicationContext()
-				.getSystemService(Context.WIFI_SERVICE);
-		try {
-			WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-			ssid = wifiInfo.getSSID();
-		} catch (Exception a) {
-		}
-
-		if (ssid == null) {
-			ssid = "";
-		}
-		return ssid;
 	}
 
 	public class DiscoveredHostsAdapter extends ArrayAdapter<DesktopHost> {

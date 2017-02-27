@@ -7,6 +7,7 @@ import java.net.Socket;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Context;
@@ -18,7 +19,6 @@ import android.content.res.Configuration;
 import android.database.Cursor;
 import android.media.AudioManager;
 import android.net.Uri;
-import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.BatteryManager;
@@ -30,6 +30,7 @@ import android.os.PowerManager;
 import android.os.StatFs;
 import android.preference.PreferenceManager;
 import android.provider.CallLog;
+import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
 public class StatusUpdateService extends Service {
@@ -60,7 +61,7 @@ public class StatusUpdateService extends Service {
 
 	private void loadHosts() {
 		dbhelper = new DesktopHostsDBHelper(this);
-		String current_wifi = getWifiSSID();
+		String current_wifi = WifiUtils.getWifiSSID(getApplicationContext());
 
 		Cursor cursor = dbhelper.getHostsOnWifiCursor(current_wifi);
 		int hostcount = cursor.getCount();
@@ -263,32 +264,43 @@ public class StatusUpdateService extends Service {
 
 		//get missed Calls
 		if (send_calls) {
-			String[] projection = {CallLog.Calls.CACHED_NAME, CallLog.Calls.CACHED_NUMBER_LABEL, CallLog.Calls.TYPE};
-			String where = CallLog.Calls.TYPE + "=" + CallLog.Calls.MISSED_TYPE + " AND " + CallLog.Calls.NEW + "=1";
-			Cursor c = this.getContentResolver().query(CallLog.Calls.CONTENT_URI, projection, where, null, null);
-			c.moveToFirst();
-			int missedCalls = c.getCount();
-			c.close();
+			if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_CALL_LOG)
+					== PackageManager.PERMISSION_GRANTED) {
 
-			try {
-				jobject.put("missedcalls", missedCalls);
-			} catch (JSONException e) {
-				e.printStackTrace();
+				String[] projection = {CallLog.Calls.CACHED_NAME, CallLog.Calls.CACHED_NUMBER_LABEL, CallLog.Calls.TYPE};
+				String where = CallLog.Calls.TYPE + "=" + CallLog.Calls.MISSED_TYPE + " AND " + CallLog.Calls.NEW + "=1";
+				Cursor c = this.getContentResolver().query(CallLog.Calls.CONTENT_URI, projection, where, null, null);
+				c.moveToFirst();
+				int missedCalls = c.getCount();
+				c.close();
+
+				try {
+					jobject.put("missedcalls", missedCalls);
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+			} else {
+				Log.w("StatusUpdateService:", "Ignore call log, permission not granted.");
 			}
 		}
 
 		//get missed Messages
 		if (send_messages) {
-			Uri sms_content = Uri.parse("content://sms/inbox");
-			Cursor cm = this.getContentResolver().query(sms_content, null, "read = 0", null, null);
-			cm.moveToFirst();
-			int missedMsgs = cm.getCount();
-			cm.close();
+			if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)
+					== PackageManager.PERMISSION_GRANTED) {
+				Uri sms_content = Uri.parse("content://sms/inbox");
+				Cursor cm = this.getContentResolver().query(sms_content, null, "read = 0", null, null);
+				cm.moveToFirst();
+				int missedMsgs = cm.getCount();
+				cm.close();
 
-			try {
-				jobject.put("missedmsgs", missedMsgs);
-			} catch (JSONException e) {
-				e.printStackTrace();
+				try {
+					jobject.put("missedmsgs", missedMsgs);
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+			} else {
+				Log.w("StatusUpdateService:", "Ignore sms messages, permission not granted.");
 			}
 		}
 
@@ -436,22 +448,6 @@ public class StatusUpdateService extends Service {
 	@Override
 	public IBinder onBind(Intent arg0) {
 		return null;
-	}
-
-	private String getWifiSSID() {
-		String ssid = "";
-		WifiManager wifiManager = (WifiManager) getApplicationContext()
-				.getSystemService(Context.WIFI_SERVICE);
-		try {
-			WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-			ssid = wifiInfo.getSSID();
-		} catch (Exception a) {
-		}
-
-		if (ssid == null) {
-			ssid = "";
-		}
-		return ssid;
 	}
 
 	private int getWifiStrength() {

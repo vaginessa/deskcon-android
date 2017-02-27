@@ -20,7 +20,13 @@
                 android:id="@+id/changelogView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Release 0.3\n
+                android:text="Release 0.4\n
+								code migrated to Android Studio 2.2.3\n
+								fix permissions on Android >= 6\n
+								remove permission READ_PHONE_STATE\n
+								automatically send clipboard content\n
+
+							\nRelease 0.3\n
 							    fixed Null status values\n
 							    one device on multiple networks\n
 							    improved Hostname support\n

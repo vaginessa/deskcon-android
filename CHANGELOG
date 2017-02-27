@@ -1,3 +1,9 @@
+Release 0.4
+    code migrated to Android Studio 2.2.3
+    fix permissions on Android >= 6 (Marshmallow)
+    remove permission READ_PHONE_STATE
+    automatically send clipboard content
+
 Release 0.3
     fixed Null status values
     one device on multiple networks
