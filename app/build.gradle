@@ -5,7 +5,7 @@ android {
     buildToolsVersion "25.0.2"
 
     defaultConfig {
-        applicationId "net.screenfreeze.deskcon"
+        applicationId "cl.felipebarriga.deskcon"
         minSdkVersion 9
         targetSdkVersion 25
     }
