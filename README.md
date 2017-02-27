@@ -21,8 +21,8 @@ Original Information:
 
 Updated Information:
 --------------------
-    - Source https://github.com/fbarriga/deskcon-desktop
-    - Google Play Store: TBD
+    - Source https://github.com/fbarriga/deskcon-android
+    - Google Play Store: https://play.google.com/store/apps/details?id=cl.felipebarriga.deskcon
 
 Requirements (Android):
 ------------------------------
