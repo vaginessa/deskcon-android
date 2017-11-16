@@ -11,9 +11,10 @@ import android.net.wifi.WifiManager;
 public class WifiUtils {
     public static String getWifiSSID(Context context) {
         String ssid = null;
-        WifiManager wifiManager = (WifiManager) context
+        WifiManager wifiManager = (WifiManager) context.getApplicationContext()
                 .getSystemService(Context.WIFI_SERVICE);
         try {
+            assert wifiManager != null;
             WifiInfo wifiInfo = wifiManager.getConnectionInfo();
             ssid = wifiInfo.getSSID();
         } catch (Exception a) {

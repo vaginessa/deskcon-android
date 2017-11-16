@@ -14,9 +14,6 @@ import javax.net.ssl.SSLSocket;
 
 import android.app.NotificationManager;
 import android.support.v4.app.NotificationCompat;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import android.annotation.SuppressLint;
 import android.app.Service;
@@ -33,6 +30,10 @@ import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.widget.Toast;
+
+import com.google.gson.Gson;
+
+import net.screenfreeze.deskcon.models.SendFile;
 
 
 public class SendFilesService extends Service {
@@ -109,30 +110,18 @@ public class SendFilesService extends Service {
 
 		// Building Protocol MSG
 		private String buildmsg(String type, String[] filenames) {
-			JSONObject jobject = new JSONObject();
-			JSONArray jarray = new JSONArray();
-			for (int i = 0; i < filenames.length; i++) {
-				jarray.put(filenames[i]);
-			}
-			try {
-				jobject.put("uuid", UUID);
-				jobject.put("devicename", PNAME);
-				jobject.put("type", type);
-				jobject.put("data", jarray.toString());
-			} catch (JSONException e) {
-				e.printStackTrace();
-			}
-
-			return jobject.toString();
+			SendFile sendFile = new SendFile(UUID, PNAME,type,filenames);
+			Gson gson = new Gson();
+			return gson.toJson(sendFile);
 		}
 
 		// sendfile
-		private void sendFile(Uri f, SSLSocket sslsocket) throws Exception {
+		private void sendFile(Uri fileUri, SSLSocket sslsocket) throws Exception {
 			byte[] buffer = new byte[4096];
-			long filesize = getFileSize(f);
+			long fileSize = getFileSize(fileUri);
 
-			InputStream is = getContentResolver().openInputStream(f);
-			BufferedInputStream bis = new BufferedInputStream(is);
+			InputStream inputStream = getContentResolver().openInputStream(fileUri);
+			BufferedInputStream bis = new BufferedInputStream(inputStream);
 			OutputStream outputstream = sslsocket.getOutputStream();
 			InputStream inputstream = sslsocket.getInputStream();
 
@@ -147,17 +136,17 @@ public class SendFilesService extends Service {
 			mNotifyManager.notify(notificationId, mBuilder.build());
 
 			// send file size
-			outputstream.write(String.valueOf(filesize).getBytes());
+			outputstream.write(String.valueOf(fileSize).getBytes());
 			// wait for ready
 			inputstream.read();
-			long cnt = Math.round(filesize / 4096) + 1;
+			long cnt = Math.round(fileSize / 4096) + 1;
 			int lastProgress = -1, tmp;
 
 			try {
 				for (long i = 0; i < cnt; i++) {
-					int bytesread = -1;
-					if ((bytesread = bis.read(buffer, 0, 4096)) != -1) {
-						outputstream.write(buffer, 0, bytesread);
+					int bytesRead = -1;
+					if ((bytesRead = bis.read(buffer, 0, 4096)) != -1) {
+						outputstream.write(buffer, 0, bytesRead);
 						outputstream.flush();
 					}
 					//Notify
